@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import CalcButton from "../components/CalcButton";
 import CalcDisplay from "../components/CalcDisplay";
@@ -121,9 +121,9 @@ export default function Home() {
       const response = await fetch(`${endpoint}/${first}/${second}`);
       result = await response.json();
 
-
-      setDisplayValue(String(result.result));
-      setFirstOperand(result.result);
+      const formattedResult = Number(result.result).toFixed(3);
+      setDisplayValue(formattedResult);
+      setFirstOperand(Number(formattedResult));
     } catch (error) {
       console.error(error);
       setDisplayValue("Erro");
@@ -168,7 +168,8 @@ export default function Home() {
 
       const response = await fetch(`${endpoint}/${a}/${b}`);
       const data = await response.json();
-      setInputResult(String(data.result));
+      const formattedResult = Number(data.result).toFixed(3);
+      setInputResult(formattedResult);
     } catch (error) {
       console.error(error);
       setInputResult("Erro");
@@ -189,6 +190,63 @@ export default function Home() {
     setOperator(null);
     setWaitingForSecondOperand(true);
   };
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (["Enter", "Escape", "Backspace", "+", "-", "*", "/", "^", "%", "."].includes(event.key)) {
+        event.preventDefault();
+      }
+
+      // Números
+      if (/^[0-9]$/.test(event.key)) {
+        inputDigit(event.key);
+      }
+      // Operadores
+      else if (event.key === "+") {
+        handleOperator("+");
+      }
+      else if (event.key === "-") {
+        handleOperator("-");
+      }
+      else if (event.key === "*") {
+        handleOperator("×");
+      }
+      else if (event.key === "/") {
+        handleOperator("÷");
+      }
+      else if (event.key === "^") {
+        handleOperator("^");
+      }
+      // Outras teclas
+      else if (event.key === "Enter" || event.key === "=") {
+        handleEquals();
+      }
+      else if (event.key === "Escape") {
+        clearDisplay();
+      }
+      else if (event.key === ".") {
+        inputDecimal();
+      }
+      else if (event.key === "%") {
+        const percentage = String(parseFloat(displayValue) / 100);
+        setDisplayValue(percentage);
+        setExpressionDisplay(expressionDisplay.slice(0, expressionDisplay.lastIndexOf(displayValue)) + percentage);
+      }
+      else if (event.key === "Backspace") {
+        if (displayValue.length > 1) {
+          const newValue = displayValue.slice(0, -1);
+          setDisplayValue(newValue);
+          setExpressionDisplay(expressionDisplay.slice(0, expressionDisplay.lastIndexOf(displayValue)) + newValue);
+        } else {
+          setDisplayValue("0");
+          setExpressionDisplay(expressionDisplay.slice(0, expressionDisplay.lastIndexOf(displayValue)) + "0");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [displayValue, expressionDisplay, inputDigit, inputDecimal, clearDisplay, handleOperator, handleEquals]);
 
   return (
     <div
