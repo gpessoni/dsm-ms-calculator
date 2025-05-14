@@ -121,7 +121,11 @@ export default function Home() {
       const response = await fetch(`${endpoint}/${first}/${second}`);
       result = await response.json();
 
-      const formattedResult = Number(result.result).toFixed(3);
+      const resultNumber = Number(result.result);
+      const formattedResult = Number.isInteger(resultNumber) 
+        ? resultNumber.toString() 
+        : resultNumber.toFixed(3);
+      
       setDisplayValue(formattedResult);
       setFirstOperand(Number(formattedResult));
     } catch (error) {
@@ -168,7 +172,11 @@ export default function Home() {
 
       const response = await fetch(`${endpoint}/${a}/${b}`);
       const data = await response.json();
-      const formattedResult = Number(data.result).toFixed(3);
+      const resultNumber = Number(data.result);
+      const formattedResult = Number.isInteger(resultNumber) 
+        ? resultNumber.toString() 
+        : resultNumber.toFixed(3);
+      
       setInputResult(formattedResult);
     } catch (error) {
       console.error(error);
